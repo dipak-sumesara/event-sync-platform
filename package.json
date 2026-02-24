@@ -1,7 +1,27 @@
 {
-  "dependencies": {
-    "axios": "^1.13.5",
-    "ioredis": "^5.9.3",
-    "pg": "^8.18.0"
+  "name": "event-sync-platform",
+  "version": "1.0.0",
+  "description": "A distributed webhook-based event synchronization platform built with Node.js (NestJS), PostgreSQL, and Redis.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dipak-sumesara/event-sync-platform.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/dipak-sumesara/event-sync-platform/issues"
+  },
+  "homepage": "https://github.com/dipak-sumesara/event-sync-platform#readme",
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3"
   }
 }
