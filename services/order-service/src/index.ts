@@ -17,6 +17,14 @@ interface EventPayload {
   timestamp: string;
 }
 
+app.get("/health", (_req: Request, res: Response) => {
+  res.json({
+    status: "ok",
+    service: "order-service",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.post("/order", async (req: Request, res: Response) => {
   const order: OrderPayload = req.body;
 

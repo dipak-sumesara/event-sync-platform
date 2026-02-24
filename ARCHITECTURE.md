@@ -1,40 +1,57 @@
-# Architecture Deep Dive
+# Architecture Diagram
 
-## Design Goals
+```
+           +----------------+
+           |  Order Service |
+           +--------+-------+
+                    |
+                    |  emits event
+                    v
+           +-------------------+
+           |  Event Processor  |
+           +---------+---------+
+                     |
+       +-------------+--------------+
+       |                            |
+       v                            v
++-------------+              +-------------+
+| Redis Queue |              | External    |
+| Retry Store |              | System Mock |
++-------------+              +-------------+
+```
 
-- Decouple services
-- Ensure reliable delivery
-- Prevent duplicate processing
-- Enable eventual consistency
+---
 
-## Event Processing Strategy
+## Components
 
-Each event contains:
+### Order Service
+Responsible for emitting domain events.
 
-- Unique ID
-- Type
-- Payload
+### Event Processor
+Handles:
 
-Before processing, the system should:
+- Idempotency validation
+- Webhook delivery
+- Retry scheduling
+- Dead-letter logic
 
-1. Check if event ID already processed (idempotency).
-2. Attempt webhook dispatch.
-3. On failure, push event into retry queue.
-4. Worker retries every 5 seconds.
+### Redis
+Used for:
 
-## Failure Handling
+- Retry queue
+- Processed event tracking
 
-Simulated external failures (30%) demonstrate:
+### External System
+Simulates real-world unreliable dependency.
 
-- Need for retry
-- Importance of dead-letter queue
-- Observability necessity
+---
 
-## Improvements (Future Enhancements)
+## Retry Strategy
 
-- Exponential backoff
-- DLQ threshold handling
-- Metrics endpoint
-- Structured logging
-- Distributed tracing
-- Idempotency table in PostgreSQL
+If delivery fails:
+
+Retry delay = 2^retryCount seconds
+
+Max retries = 5
+
+After threshold → event considered dead-lettered.

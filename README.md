@@ -1,15 +1,22 @@
 # Event Sync Platform
 
-A distributed webhook-based event synchronization platform built with Node.js (NestJS), PostgreSQL, and Redis.
+A distributed webhook-based event synchronization platform built with TypeScript, Express, Redis, and event-driven retry patterns.
 
-This project demonstrates how to design reliable cross-system integrations using:
+This project demonstrates how to design reliable cross-system integrations in a microservice environment.
 
-- Event-driven architecture
-- Idempotent event handling
-- Retry mechanisms with backoff
-- Dead-letter queue strategy
-- Service isolation
-- Eventual consistency patterns
+---
+
+## 🎯 Problem Statement
+
+In distributed systems, integrating with external platforms (e.g., Salesforce, ERP, payment gateways) introduces challenges:
+
+- Network failures
+- Partial system downtime
+- Duplicate events
+- Schema mismatches
+- Eventual consistency concerns
+
+This platform simulates those challenges and implements production-grade handling strategies.
 
 ---
 
@@ -17,58 +24,92 @@ This project demonstrates how to design reliable cross-system integrations using
 
 Services:
 
-- **Order Service** – Emits domain events (ORDER_CREATED)
-- **Event Processor** – Handles webhook dispatch, retries, and queue management
-- **External System (Mock Salesforce)** – Simulates external integration with random failures
-- **Redis** – Retry queue
-- **PostgreSQL** – Persistent storage
+- **Order Service** → Emits domain events
+- **Event Processor** → Handles delivery, retries, idempotency
+- **External System (Mock)** → Simulates unreliable external dependency
+- **Redis** → Retry queue + idempotency store
 
-Event Flow:
+### Event Flow
 
 1. Order is created.
-2. Event is emitted.
-3. Event Processor dispatches webhook.
-4. If failure occurs → event goes to retry queue.
-5. Background worker retries until success.
+2. Event is emitted to Event Processor.
+3. Event Processor attempts webhook delivery.
+4. On failure → event is queued.
+5. Retry worker applies exponential backoff.
+6. After max retries → dead-letter behavior.
 
 ---
 
-## 🚀 How to Run
+## 🔐 Reliability Features
+
+- Idempotent event processing
+- Redis-based duplicate detection
+- Exponential backoff retry (2^n seconds)
+- Dead-letter threshold
+- Health check endpoints
+- Environment-based configuration
+- Structured logging
+
+---
+
+## ⚙️ How to Run
+
+Start Redis:
 
 ```bash
-docker-compose up --build
+docker run -p 6379:6379 redis
 ```
 
-Test:
+Run services individually:
 
+```bash
+cd services/external-system && npm run dev
+cd services/event-processor && npm run dev
+cd services/order-service && npm run dev
+```
+
+Trigger event:
+
+```
 POST http://localhost:3001/order
-
-```
-{
-  "product": "Tshirt",
-  "quantity": 100
-}
 ```
 
 ---
 
-## 🔒 Reliability Strategies
+## 🧠 Design Decisions
 
-- Idempotent event handling
-- Retry queue using Redis
-- Randomized failure simulation
-- Event reprocessing worker
-- Separation of concerns between services
+### Why Redis for retry queue?
+Fast, simple, atomic operations, good for lightweight queue simulation.
+
+### Why idempotency?
+Distributed systems can deliver the same event multiple times.
+We prevent duplicate side-effects.
+
+### Why exponential backoff?
+Avoids overwhelming external systems during outage.
+
+### Why dead-letter threshold?
+Prevents infinite retry loops and resource exhaustion.
 
 ---
 
-## 📌 Why This Matters
+## 🚀 Future Improvements
 
-In real-world distributed systems, cross-system synchronization must tolerate:
+- Persist idempotency keys in PostgreSQL
+- Introduce message broker (Kafka/RabbitMQ)
+- Add metrics endpoint (Prometheus)
+- Add structured logging (Pino)
+- Containerize entire system with Docker Compose
 
-- Partial failures
-- Network timeouts
-- Schema mismatches
-- Duplicate events
+---
 
-This project demonstrates production-ready design patterns to handle those challenges.
+## 📌 What This Demonstrates
+
+This project reflects real-world patterns used in:
+
+- Enterprise integrations
+- Internal admin platforms
+- B2B SaaS infrastructure
+- Webhook-driven architectures
+
+It focuses on reliability, not just API wiring.
